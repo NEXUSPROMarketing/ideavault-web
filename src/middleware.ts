@@ -6,6 +6,21 @@ import { createServerClient } from "@supabase/ssr";
  * Deliberately scoped so public ISR pages are served with zero middleware.
  */
 export async function middleware(request: NextRequest) {
+  // Safety net: if a Supabase auth code lands on the homepage (happens when
+  // the project's Site URL / redirect allowlist isn't fully configured and
+  // Supabase falls back to the Site URL), forward it to the code exchange so
+  // the sign-in still completes instead of dead-ending.
+  if (request.nextUrl.pathname === "/") {
+    if (request.nextUrl.searchParams.has("code")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/callback";
+      if (!url.searchParams.has("next")) url.searchParams.set("next", "/foryou");
+      return NextResponse.redirect(url);
+    }
+    // Plain homepage traffic: pass straight through, no auth work.
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -34,5 +49,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/foryou/:path*", "/library/:path*", "/login", "/auth/:path*"],
+  matcher: ["/", "/foryou/:path*", "/library/:path*", "/login", "/auth/:path*"],
 };
