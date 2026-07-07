@@ -1,0 +1,17 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+*.tsbuildinfo
+
+# local env — real values live in Vercel project settings (see .env.example)
+.env
+.env.local
+.env*.local
