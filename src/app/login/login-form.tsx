@@ -1,0 +1,129 @@
+"use client";
+
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { EmailSchema } from "@/lib/schemas";
+
+type FormState = "idle" | "sending" | "sent" | "error";
+
+export function LoginForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/foryou";
+  const linkError = searchParams.get("error");
+
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<FormState>("idle");
+  const [message, setMessage] = useState("");
+
+  function redirectUrl(): string {
+    return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  }
+
+  async function sendMagicLink(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const parsed = EmailSchema.safeParse(email);
+    if (!parsed.success) {
+      setState("error");
+      setMessage(parsed.error.issues[0]?.message ?? "Enter a valid email address");
+      return;
+    }
+    setState("sending");
+    try {
+      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: parsed.data,
+        options: { emailRedirectTo: redirectUrl() },
+      });
+      if (error) throw error;
+      setState("sent");
+    } catch (err) {
+      setState("error");
+      setMessage(err instanceof Error ? err.message : "Could not send the link — try again.");
+    }
+  }
+
+  async function signInWithGoogle() {
+    setMessage("");
+    try {
+      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: redirectUrl() },
+      });
+      if (error) throw error;
+    } catch (err) {
+      setState("error");
+      setMessage(
+        err instanceof Error && /not enabled/i.test(err.message)
+          ? "Google sign-in isn’t enabled yet — use the email link instead."
+          : "Google sign-in failed — use the email link instead.",
+      );
+    }
+  }
+
+  if (state === "sent") {
+    return (
+      <div className="text-center" role="status">
+        <p className="font-display text-lg font-semibold text-moss">Check your email ✓</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+          We sent a sign-in link to <span className="font-semibold text-ink">{email}</span>. Open
+          it on this device to land back here, signed in.
+        </p>
+        <button
+          type="button"
+          onClick={() => setState("idle")}
+          className="mt-4 text-sm font-semibold text-terracotta underline underline-offset-2"
+        >
+          Use a different email
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {linkError && state === "idle" && (
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          That sign-in link didn’t work (it may have expired) — request a fresh one below.
+        </p>
+      )}
+      <form onSubmit={sendMagicLink} noValidate>
+        <label htmlFor="login-email" className="field-label">
+          Email address
+        </label>
+        <input
+          id="login-email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (state === "error") setState("idle");
+          }}
+          aria-invalid={state === "error"}
+          aria-describedby={state === "error" ? "login-error" : undefined}
+          className="input"
+        />
+        <button type="submit" disabled={state === "sending"} className="btn-primary mt-3 w-full">
+          {state === "sending" ? "Sending link…" : "Email me a sign-in link"}
+        </button>
+      </form>
+      {state === "error" && (
+        <p id="login-error" role="alert" className="mt-2 text-sm font-medium text-red-700">
+          {message}
+        </p>
+      )}
+      <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+        <span className="h-px flex-1 bg-line" aria-hidden />
+        or
+        <span className="h-px flex-1 bg-line" aria-hidden />
+      </div>
+      <button type="button" onClick={signInWithGoogle} className="btn-secondary w-full">
+        Continue with Google
+      </button>
+    </div>
+  );
+}

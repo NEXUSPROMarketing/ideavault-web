@@ -4,8 +4,10 @@ import { DeepDiveFlag, ScoreBadge, TagChip } from "@/components/pills";
 import { QuadrantGrid } from "@/components/quadrant";
 import { difficultyBand } from "@/lib/format";
 
+export type CardFit = { score: number; reasons: string[] };
+
 /** Database card: title, tagline, tags, quadrant scores and fit footer. */
-export function IdeaCard({ idea }: { idea: IdeaCardData }) {
+export function IdeaCard({ idea, fit }: { idea: IdeaCardData; fit?: CardFit }) {
   return (
     <Link
       href={`/ideas/${idea.slug}`}
@@ -35,6 +37,19 @@ export function IdeaCard({ idea }: { idea: IdeaCardData }) {
           ))}
           {idea.signal_tags.length > 3 && (
             <span className="text-[11px] text-ink-faint">+{idea.signal_tags.length - 3}</span>
+          )}
+        </div>
+      )}
+
+      {fit && (
+        <div className="mt-3 rounded-lg border border-moss/20 bg-moss-tint px-3 py-2">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-moss">
+            Fit {fit.score}%
+          </p>
+          {fit.reasons.length > 0 && (
+            <p className="mt-0.5 text-[12px] leading-snug text-ink-soft">
+              {fit.reasons.join(" · ")}
+            </p>
           )}
         </div>
       )}

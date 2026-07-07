@@ -17,6 +17,7 @@ import { MetricBars } from "@/components/metric-bars";
 import { Markdown } from "@/components/markdown";
 import { SectionCard } from "@/components/section-card";
 import { Sparkline } from "@/components/sparkline";
+import { StatusButtons } from "@/components/status-buttons";
 
 function FitTile({
   label,
@@ -136,6 +137,9 @@ export function IdeaReport({
               {released && signalsUpdated && <span aria-hidden> · </span>}
               {signalsUpdated && <>Signals updated {signalsUpdated}</>}
             </p>
+            <div className="mt-5">
+              <StatusButtons slug={idea.slug} />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-6 lg:flex-col lg:items-end">
             <ScoreRing score={idea.score_overall} />

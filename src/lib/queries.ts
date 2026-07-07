@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import {
   DropSchema,
+  FitIdeaSchema,
   IdeaCardSchema,
   IdeaSchema,
   InsightSchema,
@@ -8,6 +9,7 @@ import {
   TrendSchema,
   parseRows,
   type Drop,
+  type FitIdea,
   type Idea,
   type IdeaCard,
   type Insight,
@@ -70,6 +72,16 @@ export async function getIdeasByCategory(
   const { data, error } = await query;
   if (error) fail(`ideas:${category}`, error.message);
   return parseRows(IdeaCardSchema, data).slice(0, limit);
+}
+
+export async function getFitIdeas(): Promise<FitIdea[]> {
+  const { data, error } = await supabase
+    .from("ideas")
+    .select(`${IDEA_CARD_COLUMNS},startup_costs`)
+    .order("score_overall", { ascending: false })
+    .order("slug", { ascending: true });
+  if (error) fail("fit-ideas", error.message);
+  return parseRows(FitIdeaSchema, data);
 }
 
 export async function getIdeaCardsBySlugs(slugs: string[]): Promise<IdeaCard[]> {

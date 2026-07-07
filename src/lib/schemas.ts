@@ -158,6 +158,72 @@ export const EmailSchema = z
   .min(1, "Enter your email")
   .email("That doesn’t look like an email address");
 
+/** ---- founder profile (Phase B) ------------------------------------------ */
+
+export const BudgetEnum = z.enum(["under-1k", "1k-5k", "5k-15k", "15k-plus"]);
+export const HoursEnum = z.enum(["under-5", "5-10", "10-20", "20-plus"]);
+export const TechEnum = z.enum(["non-technical", "low-code", "technical"]);
+export const AudienceEnum = z.enum(["none", "small", "established"]);
+
+export const BUDGET_TIERS: { value: z.infer<typeof BudgetEnum>; label: string }[] = [
+  { value: "under-1k", label: "Under $1K" },
+  { value: "1k-5k", label: "$1K – $5K" },
+  { value: "5k-15k", label: "$5K – $15K" },
+  { value: "15k-plus", label: "$15K+" },
+];
+export const HOURS_TIERS: { value: z.infer<typeof HoursEnum>; label: string }[] = [
+  { value: "under-5", label: "Under 5 hrs/week" },
+  { value: "5-10", label: "5–10 hrs/week" },
+  { value: "10-20", label: "10–20 hrs/week" },
+  { value: "20-plus", label: "20+ hrs/week" },
+];
+export const TECH_TIERS: { value: z.infer<typeof TechEnum>; label: string }[] = [
+  { value: "non-technical", label: "Non-technical" },
+  { value: "low-code", label: "Low-code / AI-assisted" },
+  { value: "technical", label: "Technical — I can code" },
+];
+export const AUDIENCE_TIERS: { value: z.infer<typeof AudienceEnum>; label: string }[] = [
+  { value: "none", label: "No audience yet" },
+  { value: "small", label: "Small niche audience" },
+  { value: "established", label: "Established audience" },
+];
+
+/** Tolerant parser for profile rows (nulls → sensible defaults). */
+export const ProfileSchema = z.object({
+  skills: z.string().trim().max(600).catch(""),
+  interests: z.string().trim().max(600).catch(""),
+  budget: BudgetEnum.catch("1k-5k"),
+  hours: HoursEnum.catch("5-10"),
+  technical: TechEnum.catch("low-code"),
+  audience: AudienceEnum.catch("none"),
+  goal: z.string().trim().max(300).catch(""),
+});
+
+export type Profile = z.infer<typeof ProfileSchema>;
+
+export function hasProfileContent(p: Profile): boolean {
+  return p.skills.trim().length > 0 || p.interests.trim().length > 0;
+}
+
+/** Idea columns needed by the fit engine (card fields + startup costs). */
+export const FitIdeaSchema = IdeaCardSchema.extend({
+  startup_costs: nullableString,
+});
+
+export type FitIdea = z.infer<typeof FitIdeaSchema>;
+
+/** ---- idea status (Phase B) ------------------------------------------------ */
+
+export const StatusEnum = z.enum(["saved", "interested", "building", "passed"]);
+export type IdeaStatus = z.infer<typeof StatusEnum>;
+
+export const StatusRowSchema = z.object({
+  idea_slug: z.string().min(1),
+  status: StatusEnum,
+});
+
+export type StatusRow = z.infer<typeof StatusRowSchema>;
+
 /** ---- helpers -------------------------------------------------------------- */
 
 /** Parse an array of unknown rows, silently dropping any that fail validation. */
