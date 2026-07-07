@@ -5,13 +5,16 @@ import { useSearchParams } from "next/navigation";
 import { EmailSchema } from "@/lib/schemas";
 
 type FormState = "idle" | "sending" | "sent" | "error";
+type Mode = "magic" | "password";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/foryou";
   const linkError = searchParams.get("error");
 
+  const [mode, setMode] = useState<Mode>("magic");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [state, setState] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
 
@@ -39,7 +42,46 @@ export function LoginForm() {
       setState("sent");
     } catch (err) {
       setState("error");
-      setMessage(err instanceof Error ? err.message : "Could not send the link — try again.");
+      const raw = err instanceof Error ? err.message : "";
+      setMessage(
+        /rate limit/i.test(raw)
+          ? "Email limit reached for now — try again in an hour, or sign in with a password below."
+          : raw || "Could not send the link — try again.",
+      );
+    }
+  }
+
+  async function signInWithPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const parsed = EmailSchema.safeParse(email);
+    if (!parsed.success) {
+      setState("error");
+      setMessage(parsed.error.issues[0]?.message ?? "Enter a valid email address");
+      return;
+    }
+    if (!password) {
+      setState("error");
+      setMessage("Enter your password");
+      return;
+    }
+    setState("sending");
+    try {
+      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: parsed.data,
+        password,
+      });
+      if (error) throw error;
+      window.location.assign(next);
+    } catch (err) {
+      setState("error");
+      const raw = err instanceof Error ? err.message : "";
+      setMessage(
+        /invalid login credentials/i.test(raw)
+          ? "Email or password doesn’t match."
+          : raw || "Sign-in failed — try again.",
+      );
     }
   }
 
@@ -89,7 +131,7 @@ export function LoginForm() {
           That sign-in link didn’t work (it may have expired) — request a fresh one below.
         </p>
       )}
-      <form onSubmit={sendMagicLink} noValidate>
+      <form onSubmit={mode === "magic" ? sendMagicLink : signInWithPassword} noValidate>
         <label htmlFor="login-email" className="field-label">
           Email address
         </label>
@@ -107,8 +149,32 @@ export function LoginForm() {
           aria-describedby={state === "error" ? "login-error" : undefined}
           className="input"
         />
+        {mode === "password" && (
+          <div className="mt-3">
+            <label htmlFor="login-password" className="field-label">
+              Password
+            </label>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (state === "error") setState("idle");
+              }}
+              className="input"
+            />
+          </div>
+        )}
         <button type="submit" disabled={state === "sending"} className="btn-primary mt-3 w-full">
-          {state === "sending" ? "Sending link…" : "Email me a sign-in link"}
+          {state === "sending"
+            ? mode === "magic"
+              ? "Sending link…"
+              : "Signing in…"
+            : mode === "magic"
+              ? "Email me a sign-in link"
+              : "Sign in"}
         </button>
       </form>
       {state === "error" && (
@@ -116,6 +182,16 @@ export function LoginForm() {
           {message}
         </p>
       )}
+      <button
+        type="button"
+        onClick={() => {
+          setMode(mode === "magic" ? "password" : "magic");
+          setState("idle");
+        }}
+        className="mt-3 text-sm font-semibold text-terracotta underline underline-offset-2 hover:text-terracotta-deep"
+      >
+        {mode === "magic" ? "Have a password? Sign in with it" : "Prefer an email link instead?"}
+      </button>
       <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
         <span className="h-px flex-1 bg-line" aria-hidden />
         or
