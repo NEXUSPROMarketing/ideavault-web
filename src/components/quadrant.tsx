@@ -29,7 +29,7 @@ export function QuadrantGrid({
         const style = metricStyle(value);
         return (
           <div key={key} className={compact ? "bg-white px-2.5 py-2" : "bg-white px-3.5 py-3"}>
-            <p className="truncate text-[9px] font-bold uppercase tracking-[0.12em] text-ink-faint">
+            <p className="truncate text-[9px] font-bold uppercase tracking-[0.06em] text-ink-faint">
               {label}
             </p>
             <p

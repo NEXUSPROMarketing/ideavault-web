@@ -149,9 +149,9 @@ export default async function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-6 lg:flex-col lg:items-end">
+              <div className="flex flex-wrap items-center gap-6 lg:flex-col lg:items-end">
                 <ScoreRing score={today.idea.score_overall} size={124} />
-                <div className="w-48">
+                <div className="w-48 shrink-0">
                   <QuadrantGrid idea={today.idea} compact />
                 </div>
               </div>

@@ -17,7 +17,7 @@ export function Nav() {
       <nav className="shell flex h-14 items-center justify-between gap-3" aria-label="Main">
         <Link
           href="/"
-          className="flex shrink-0 items-baseline font-display text-xl font-bold tracking-tight"
+          className="flex shrink-0 items-baseline font-display text-lg font-bold tracking-tight sm:text-xl"
         >
           <span>Idea</span>
           <span className="text-terracotta">Vault</span>
@@ -30,7 +30,7 @@ export function Nav() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-full px-2.5 py-1.5 text-sm transition-colors sm:px-3.5 ${
+                className={`rounded-full px-2 py-1.5 text-[13px] transition-colors sm:px-3.5 sm:text-sm ${
                   active
                     ? "bg-ink font-semibold text-cream"
                     : "text-ink-soft hover:bg-line/60 hover:text-ink"

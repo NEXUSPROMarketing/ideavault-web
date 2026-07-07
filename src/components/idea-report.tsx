@@ -137,9 +137,9 @@ export function IdeaReport({
               {signalsUpdated && <>Signals updated {signalsUpdated}</>}
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-6 lg:flex-col lg:items-end">
+          <div className="flex flex-wrap items-center gap-6 lg:flex-col lg:items-end">
             <ScoreRing score={idea.score_overall} />
-            <div className="w-48">
+            <div className="w-48 shrink-0">
               <QuadrantGrid idea={idea} compact />
             </div>
           </div>
