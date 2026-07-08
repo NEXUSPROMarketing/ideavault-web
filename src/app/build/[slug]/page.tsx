@@ -42,14 +42,16 @@ export default async function BuildPage({ params }: { params: Promise<{ slug: st
   const allowed = !!user && (!PACKS_REQUIRE_PRO || tier === "pro" || isDailyFree);
 
   let cachedContent: string | null = null;
+  let cachedQueued = false;
   if (allowed) {
     try {
       const { data } = await getSupabaseAdmin()
         .from("build_packs")
-        .select("content")
+        .select("content,model")
         .eq("idea_slug", slug)
         .maybeSingle();
-      cachedContent = data?.content ?? null;
+      cachedQueued = data?.model === "queued";
+      cachedContent = cachedQueued ? null : (data?.content ?? null);
     } catch {
       cachedContent = null;
     }
@@ -132,7 +134,12 @@ export default async function BuildPage({ params }: { params: Promise<{ slug: st
             </div>
           </div>
         ) : (
-          <PackViewer slug={idea.slug} title={idea.title} initialContent={cachedContent} />
+          <PackViewer
+            slug={idea.slug}
+            title={idea.title}
+            initialContent={cachedContent}
+            initialQueued={cachedQueued}
+          />
         )}
       </div>
     </div>
