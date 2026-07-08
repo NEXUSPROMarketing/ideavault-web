@@ -143,8 +143,8 @@ export async function POST(
       signal: controller.signal,
     });
     clearTimeout(timer);
-    if (!res.ok && res.status >= 500) {
-      throw new Error(`webhook responded ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`webhook responded ${res.status} — check PACK_FOREMAN_WEBHOOK_URL`);
     }
   } catch (e) {
     return NextResponse.json(
