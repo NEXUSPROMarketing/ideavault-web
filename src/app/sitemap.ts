@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/today`, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/trends`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/insights`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/pro`, changeFrequency: "weekly", priority: 0.6 },
   ];
 
   const ideaPages: MetadataRoute.Sitemap = rows.map((r) => ({

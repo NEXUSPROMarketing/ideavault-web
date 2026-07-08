@@ -4,17 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-const LINKS = [
+const LINKS: { href: string; label: string; desktopOnly?: boolean }[] = [
   { href: "/ideas", label: "Ideas" },
   { href: "/trends", label: "Trends" },
   { href: "/insights", label: "Insights" },
   { href: "/today", label: "Today" },
+  { href: "/chat", label: "Chat", desktopOnly: true },
 ];
 
-type NavUser = { email: string | null } | null | undefined; // undefined = loading
+type NavUser = { id: string; email: string | null } | null | undefined; // undefined = loading
 
 function AccountMenu() {
   const [user, setUser] = useState<NavUser>(undefined);
+  const [tier, setTier] = useState<"free" | "pro" | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -26,11 +28,26 @@ function AccountMenu() {
     import("@/lib/supabase-browser").then(({ createSupabaseBrowser }) => {
       if (cancelled) return;
       const supabase = createSupabaseBrowser();
-      supabase.auth.getUser().then(({ data }) => {
-        if (!cancelled) setUser(data.user ? { email: data.user.email ?? null } : null);
-      });
+      const applyUser = async (u: { id: string; email?: string | null } | null) => {
+        if (cancelled) return;
+        setUser(u ? { id: u.id, email: u.email ?? null } : null);
+        if (!u) {
+          setTier(null);
+          return;
+        }
+        const [{ computeTier }, { data }] = await Promise.all([
+          import("@/lib/billing"),
+          supabase
+            .from("subscriptions")
+            .select("tier,current_period_end")
+            .eq("user_id", u.id)
+            .maybeSingle(),
+        ]);
+        if (!cancelled) setTier(computeTier(data ?? null));
+      };
+      supabase.auth.getUser().then(({ data }) => applyUser(data.user));
       const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!cancelled) setUser(session?.user ? { email: session.user.email ?? null } : null);
+        applyUser(session?.user ?? null);
       });
       unsubscribe = () => sub.subscription.unsubscribe();
     });
@@ -39,6 +56,17 @@ function AccountMenu() {
       unsubscribe?.();
     };
   }, []);
+
+  async function openBilling() {
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as { url?: string };
+      if (res.ok && data.url) window.location.assign(data.url);
+      else router.push("/pro");
+    } catch {
+      router.push("/pro");
+    }
+  }
 
   // Close the dropdown on navigation.
   useEffect(() => {
@@ -85,10 +113,29 @@ function AccountMenu() {
         <Link href="/library" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
           My library
         </Link>
+        <Link href="/chat" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
+          Research chat
+        </Link>
+        {tier === "pro" ? (
+          <button
+            type="button"
+            onClick={openBilling}
+            className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-cream"
+          >
+            Billing
+          </button>
+        ) : (
+          <Link
+            href="/pro"
+            className="block rounded-lg px-3 py-2 text-sm font-semibold text-terracotta hover:bg-cream"
+          >
+            Upgrade to Pro
+          </Link>
+        )}
         <button
           type="button"
           onClick={signOut}
-          className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-ink-soft hover:bg-cream"
+          className="block w-full rounded-lg border-t border-line/70 px-3 py-2 text-left text-sm font-medium text-ink-soft hover:bg-cream"
         >
           Sign out
         </button>
@@ -118,6 +165,8 @@ export function Nav() {
                 href={l.href}
                 aria-current={active ? "page" : undefined}
                 className={`rounded-full px-2 py-1.5 text-[13px] transition-colors sm:px-3.5 sm:text-sm ${
+                  l.desktopOnly ? "hidden sm:inline-block " : ""
+                }${
                   active
                     ? "bg-ink font-semibold text-cream"
                     : "text-ink-soft hover:bg-line/60 hover:text-ink"

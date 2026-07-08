@@ -137,8 +137,14 @@ export function IdeaReport({
               {released && signalsUpdated && <span aria-hidden> · </span>}
               {signalsUpdated && <>Signals updated {signalsUpdated}</>}
             </p>
-            <div className="mt-5">
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
               <StatusButtons slug={idea.slug} />
+              <Link
+                href={`/build/${idea.slug}`}
+                className="inline-flex items-center gap-1 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-cream transition-colors hover:bg-terracotta"
+              >
+                Build this →
+              </Link>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-6 lg:flex-col lg:items-end">
