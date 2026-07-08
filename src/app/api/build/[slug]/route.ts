@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getTierForUser } from "@/lib/gates";
-import { packRequiresPro } from "@/lib/billing";
+import { PACKS_REQUIRE_PRO, packRequiresPro } from "@/lib/billing";
 import { getIdeaBySlug, getLatestDrops } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,7 @@ export async function GET(
     getLatestDrops(1),
   ]);
   const dailySlug = drops[0]?.idea_slug ?? null;
-  if (tier !== "pro" && packRequiresPro(slug, dailySlug)) {
+  if (PACKS_REQUIRE_PRO && tier !== "pro" && packRequiresPro(slug, dailySlug)) {
     return NextResponse.json({ error: "pro_required", dailySlug }, { status: 402 });
   }
 

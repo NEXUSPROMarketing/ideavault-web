@@ -5,7 +5,7 @@ import { createSupabaseServer } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getIdeaBySlug, getLatestDrops } from "@/lib/queries";
 import { getTierForUser } from "@/lib/gates";
-import { packRequiresPro } from "@/lib/billing";
+import { PACKS_REQUIRE_PRO, packRequiresPro } from "@/lib/billing";
 import { difficultyBand } from "@/lib/format";
 import { DeepDiveFlag, ScoreBadge } from "@/components/pills";
 import { PackViewer } from "./pack-viewer";
@@ -39,7 +39,7 @@ export default async function BuildPage({ params }: { params: Promise<{ slug: st
   ]);
   const dailySlug = drops[0]?.idea_slug ?? null;
   const isDailyFree = !packRequiresPro(slug, dailySlug);
-  const allowed = !!user && (tier === "pro" || isDailyFree);
+  const allowed = !!user && (!PACKS_REQUIRE_PRO || tier === "pro" || isDailyFree);
 
   let cachedContent: string | null = null;
   if (allowed) {
