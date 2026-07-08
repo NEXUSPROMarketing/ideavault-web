@@ -21,14 +21,15 @@ export async function subscribe(_prev: SubscribeState, formData: FormData): Prom
   }
 
   const supabase = await createSupabaseServer();
+  // Plain insert, not upsert: the subscribers table intentionally has no
+  // SELECT policy (the email list must not be readable), and Postgres RLS
+  // blocks ON CONFLICT upserts when existing rows aren't visible. A unique
+  // violation (23505) simply means "already subscribed" — that's a success.
   const { error } = await supabase
     .from("subscribers")
-    .upsert(
-      { email: parsed.data.toLowerCase() },
-      { onConflict: "email", ignoreDuplicates: true },
-    );
+    .insert({ email: parsed.data.toLowerCase() });
 
-  if (error) {
+  if (error && error.code !== "23505") {
     return { ok: false, message: "Couldn’t save that right now — try again in a minute." };
   }
   return { ok: true, message: "" };
