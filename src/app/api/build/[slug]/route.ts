@@ -128,13 +128,21 @@ export async function POST(
     }
   }
 
-  // Dispatch the Foreman.
+  // Dispatch the Foreman. If the webhook issued a secret/token, send it in
+  // every common header shape so whichever the platform checks will match.
+  const webhookSecret = process.env.PACK_FOREMAN_WEBHOOK_SECRET;
+  const dispatchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+  if (webhookSecret) {
+    dispatchHeaders.Authorization = `Bearer ${webhookSecret}`;
+    dispatchHeaders["X-Webhook-Secret"] = webhookSecret;
+    dispatchHeaders["X-API-Key"] = webhookSecret;
+  }
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: dispatchHeaders,
       body: JSON.stringify({
         message: `On-demand build pack request from the IdeaVault app: generate the build pack for idea slug "${slug}" now (a user is waiting on /build/${slug}). Fetch the idea with fetch_idea.mjs, write the five-section pack, publish it with write_pack.mjs, and confirm the OK line.`,
         idea_slug: slug,
@@ -144,7 +152,11 @@ export async function POST(
     });
     clearTimeout(timer);
     if (!res.ok) {
-      throw new Error(`webhook responded ${res.status} — check PACK_FOREMAN_WEBHOOK_URL`);
+      throw new Error(
+        res.status === 401 || res.status === 403
+          ? `webhook responded ${res.status} — set PACK_FOREMAN_WEBHOOK_SECRET to the webhook's token`
+          : `webhook responded ${res.status} — check PACK_FOREMAN_WEBHOOK_URL`,
+      );
     }
   } catch (e) {
     return NextResponse.json(
