@@ -91,8 +91,8 @@ export default async function BuildPage({ params }: { params: Promise<{ slug: st
         </div>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink-soft">
           PRD, technical blueprint, a 30-60-90 build plan, sequenced Claude Code prompts, and a
-          first-customers playbook — generated from this idea’s full research report and cached
-          for instant access.
+          first-customers playbook — drafted from this idea’s full research report by the
+          IdeaVault research engine, then cached for instant access.
         </p>
       </header>
 

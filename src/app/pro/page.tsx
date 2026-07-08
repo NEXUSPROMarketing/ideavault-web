@@ -19,8 +19,8 @@ const FREE_FEATURES = [
 
 const PRO_FEATURES = [
   "Build packs for all 120 ideas — PRD, blueprint, 30-60-90, Claude Code prompts",
-  "Research chat over the whole vault (50 messages/day)",
-  "New packs the moment ideas drop",
+  "Research chat over the whole vault — rolling out now",
+  "New packs as ideas drop",
   "Founding-member price, locked in",
 ];
 
