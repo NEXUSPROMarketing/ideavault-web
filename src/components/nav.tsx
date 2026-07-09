@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+/** Chat is parked until NEXT_PUBLIC_CHAT_ENABLED=true is set (then redeploy). */
+const CHAT_ENABLED = process.env.NEXT_PUBLIC_CHAT_ENABLED === "true";
+
 const LINKS: { href: string; label: string; desktopOnly?: boolean }[] = [
   { href: "/ideas", label: "Ideas" },
   { href: "/trends", label: "Trends" },
   { href: "/insights", label: "Insights" },
   { href: "/today", label: "Today" },
-  { href: "/chat", label: "Chat", desktopOnly: true },
+  ...(CHAT_ENABLED ? [{ href: "/chat", label: "Chat", desktopOnly: true }] : []),
 ];
 
 type NavUser = { id: string; email: string | null } | null | undefined; // undefined = loading
@@ -113,9 +116,11 @@ function AccountMenu() {
         <Link href="/library" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
           My library
         </Link>
-        <Link href="/chat" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
-          Research chat
-        </Link>
+        {CHAT_ENABLED && (
+          <Link href="/chat" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
+            Research chat
+          </Link>
+        )}
         {tier === "pro" ? (
           <button
             type="button"
