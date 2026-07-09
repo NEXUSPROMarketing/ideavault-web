@@ -51,10 +51,11 @@ export function packRequiresPro(slug: string, dailyDropSlug: string | null): boo
 }
 
 /**
- * Launch flag: the pack paywall is OFF until PACKS_REQUIRE_PRO=true is set
- * in Vercel env (then redeploy). While off, every signed-in user can open
- * every pack — sign-in is still required.
+ * Launch flags: paywalls are OFF until these are set to "true" in Vercel env
+ * (then redeploy). While off, every signed-in user can use the feature —
+ * sign-in is still required, and the daily chat quota still applies.
  */
 export const PACKS_REQUIRE_PRO = process.env.PACKS_REQUIRE_PRO === "true";
+export const CHAT_REQUIRES_PRO = process.env.CHAT_REQUIRES_PRO === "true";
 
 export const CHAT_DAILY_LIMIT = Number(process.env.CHAT_DAILY_LIMIT ?? 50);

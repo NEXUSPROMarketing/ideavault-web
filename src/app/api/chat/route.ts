@@ -10,7 +10,7 @@ import {
 import { chatSystemPrompt } from "@/lib/prompts";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { getChatUsageToday, getTierForUser, incrementChatUsage } from "@/lib/gates";
-import { CHAT_DAILY_LIMIT, canSendChatMessage } from "@/lib/billing";
+import { CHAT_DAILY_LIMIT, CHAT_REQUIRES_PRO, canSendChatMessage } from "@/lib/billing";
 import { supabase as db } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -144,8 +144,10 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
-  const tier = await getTierForUser(supabase, user.id);
-  if (tier !== "pro") return NextResponse.json({ error: "pro_required" }, { status: 402 });
+  if (CHAT_REQUIRES_PRO) {
+    const tier = await getTierForUser(supabase, user.id);
+    if (tier !== "pro") return NextResponse.json({ error: "pro_required" }, { status: 402 });
+  }
 
   let anthropic: Anthropic;
   try {

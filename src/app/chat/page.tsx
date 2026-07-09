@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { getChatUsageToday, getTierForUser } from "@/lib/gates";
-import { CHAT_DAILY_LIMIT } from "@/lib/billing";
+import { CHAT_DAILY_LIMIT, CHAT_REQUIRES_PRO } from "@/lib/billing";
 import { ChatClient } from "./chat-client";
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ export default async function ChatPage() {
     );
   }
 
-  const tier = await getTierForUser(supabase, user.id);
+  const tier = CHAT_REQUIRES_PRO ? await getTierForUser(supabase, user.id) : "pro";
 
   if (tier !== "pro") {
     return (
