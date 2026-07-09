@@ -12,6 +12,7 @@ const LINKS: { href: string; label: string; desktopOnly?: boolean }[] = [
   { href: "/trends", label: "Trends" },
   { href: "/insights", label: "Insights" },
   { href: "/today", label: "Today" },
+  { href: "/coach", label: "Coach", desktopOnly: true },
   ...(CHAT_ENABLED ? [{ href: "/chat", label: "Chat", desktopOnly: true }] : []),
 ];
 
@@ -115,6 +116,9 @@ function AccountMenu() {
         </Link>
         <Link href="/library" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
           My library
+        </Link>
+        <Link href="/coach" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">
+          Business Coach
         </Link>
         {CHAT_ENABLED && (
           <Link href="/chat" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-cream">

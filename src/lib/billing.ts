@@ -57,5 +57,6 @@ export function packRequiresPro(slug: string, dailyDropSlug: string | null): boo
  */
 export const PACKS_REQUIRE_PRO = process.env.PACKS_REQUIRE_PRO === "true";
 export const CHAT_REQUIRES_PRO = process.env.CHAT_REQUIRES_PRO === "true";
+export const COACH_REQUIRES_PRO = process.env.COACH_REQUIRES_PRO === "true";
 
 export const CHAT_DAILY_LIMIT = Number(process.env.CHAT_DAILY_LIMIT ?? 50);
