@@ -19,6 +19,7 @@ export function ChatClient({ initialUsed, limit }: { initialUsed: number; limit:
   const [streaming, setStreaming] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [used, setUsed] = useState(initialUsed);
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,7 @@ export function ChatClient({ initialUsed, limit }: { initialUsed: number; limit:
     const trimmed = text.trim();
     if (!trimmed || busy) return;
     setError(null);
+    setShowUpgrade(false);
     setBusy(true);
     setInput("");
     const nextMessages: Msg[] = [...messages, { role: "user", content: trimmed }];
@@ -53,7 +55,8 @@ export function ChatClient({ initialUsed, limit }: { initialUsed: number; limit:
           setError(`You’ve used all ${limit} messages for today — the meter resets at midnight UTC.`);
           setUsed(limit);
         } else if (data.error === "pro_required") {
-          setError("Chat needs a Pro subscription — see /pro.");
+          setError("Chat needs a Pro subscription.");
+          setShowUpgrade(true);
         } else if (data.error === "auth_required") {
           setError("Your session expired — sign in again.");
         } else {
@@ -157,7 +160,7 @@ export function ChatClient({ initialUsed, limit }: { initialUsed: number; limit:
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
             {error}{" "}
-            {error.includes("Pro") && (
+            {showUpgrade && (
               <Link href="/pro" className="font-semibold underline">
                 Upgrade
               </Link>
