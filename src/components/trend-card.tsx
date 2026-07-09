@@ -77,7 +77,39 @@ export function TrendCard({
         </div>
       )}
 
-      <details className="group mt-4 border-t border-line pt-3">
+      {/* Linked ideas — always visible, the card's main action */}
+      {linkedIdeas.length > 0 && (
+        <div className="mt-4 border-t border-line/70 pt-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-faint">
+            Ideas riding this trend
+          </p>
+          <ul className="mt-1.5">
+            {linkedIdeas.map((i) => (
+              <li key={i.slug}>
+                <Link
+                  href={`/ideas/${i.slug}`}
+                  className="group/link -mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-cream"
+                >
+                  <span className="min-w-0 truncate text-sm font-semibold text-ink transition-colors group-hover/link:text-terracotta">
+                    {i.title}
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    <ScoreBadge score={i.score_overall} size="sm" />
+                    <span
+                      className="text-ink-faint transition-transform group-hover/link:translate-x-0.5 group-hover/link:text-terracotta"
+                      aria-hidden
+                    >
+                      →
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <details className="group mt-3 border-t border-line/70 pt-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-terracotta transition-colors hover:text-terracotta-deep">
           Why it matters & founder angles
           <span
@@ -98,26 +130,6 @@ export function TrendCard({
             <div>
               <p className="eyebrow mb-1">Founder angles</p>
               <p>{trend.opportunities}</p>
-            </div>
-          )}
-          {linkedIdeas.length > 0 && (
-            <div>
-              <p className="eyebrow mb-1">Linked ideas</p>
-              <ul className="divide-y divide-line/70">
-                {linkedIdeas.map((i) => (
-                  <li key={i.slug}>
-                    <Link
-                      href={`/ideas/${i.slug}`}
-                      className="group/link flex items-center justify-between gap-3 py-2"
-                    >
-                      <span className="min-w-0 font-medium text-ink transition-colors group-hover/link:text-terracotta">
-                        {i.title}
-                      </span>
-                      <ScoreBadge score={i.score_overall} size="sm" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
           {sources.length > 0 && (
