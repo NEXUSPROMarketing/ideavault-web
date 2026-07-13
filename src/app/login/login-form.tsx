@@ -7,6 +7,18 @@ import { EmailSchema } from "@/lib/schemas";
 type FormState = "idle" | "sending" | "sent" | "error";
 type Mode = "magic" | "password";
 
+/**
+ * Auth providers occasionally surface an unhelpful error body (an empty `{}`,
+ * blank string, or other raw-JSON-looking text) instead of a real message —
+ * seen in practice when the configured mail transport fails server-side.
+ * Never show that verbatim; fall back to a clear, actionable message instead.
+ */
+function friendlyAuthMessage(raw: string, fallback: string): string {
+  const trimmed = raw.trim();
+  const looksLikeRawJson = trimmed === "" || (trimmed.startsWith("{") && trimmed.endsWith("}"));
+  return looksLikeRawJson ? fallback : trimmed;
+}
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/foryou";
@@ -46,7 +58,10 @@ export function LoginForm() {
       setMessage(
         /rate limit/i.test(raw)
           ? "Email limit reached for now — try again in an hour, or sign in with a password below."
-          : raw || "Could not send the link — try again.",
+          : friendlyAuthMessage(
+              raw,
+              "Could not send the link — try again, or sign in with a password below.",
+            ),
       );
     }
   }
@@ -80,7 +95,7 @@ export function LoginForm() {
       setMessage(
         /invalid login credentials/i.test(raw)
           ? "Email or password doesn’t match."
-          : raw || "Sign-in failed — try again.",
+          : friendlyAuthMessage(raw, "Sign-in failed — try again."),
       );
     }
   }
